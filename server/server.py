@@ -263,7 +263,7 @@ class RobotController():
         self.HOST = ''
         self.PORT = 10223                              
         self.BUFFER_SIZE = 1024                             
-        self.ADDR = (HOST, PORT)
+        self.ADDR = (self.HOST, self.PORT)
         
         
     def breath_init(self):
@@ -314,7 +314,7 @@ class RobotController():
         self.fps_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
         self.fps_threading.start()                                     #Thread starts
     
-    def startup_wait(self,ADDR,FPV_thread):
+    def startup_wait(self,ADDR):
     
         try:
             # if this works it breaks and starts running...
@@ -367,11 +367,12 @@ def main():
     # up hardware.
     
     R = RobotController(hardware=False)
-
-    while  1:
-        R.receiving_startup(ap_thread)
-        if R.startup_wait(ADDR,FPV_thread):
-            break
+    
+    if False:
+        while 1:
+            R.receiving_startup(ap_thread)
+            if R.startup_wait(self.ADDR):
+                break
 
     R.run()
     if False:
