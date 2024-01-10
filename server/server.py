@@ -42,6 +42,8 @@ class RobotController():
         # direction_command, turn_command, SmoothMode, steadyMode
 
         while True:
+            if self.tcpCliSock==None:
+                continue
             data = str(self.tcpCliSock.recv(self.BUFFER_SIZE).decode())
             if not data:
                 continue
@@ -225,6 +227,7 @@ class RobotController():
     def __init__(self,hardware=False):
         self.moving_thread = None
         self.info_thread = None
+        self.tcpCliSock = None
         
         self.step_set = 1
         self.speed_set = 100
@@ -264,7 +267,6 @@ class RobotController():
         self.PORT = 10223                              
         self.BUFFER_SIZE = 1024                             
         self.ADDR = (self.HOST, self.PORT)
-        
         
     def breath_init(self):
         try:
