@@ -16,7 +16,10 @@ import argparse
 import os
 import FPV
 import psutil
-import switch
+
+
+
+
 import LED
 
 # this is taken from one of the adafruit examples, let's assume
@@ -96,10 +99,10 @@ def info_get():
 
 
 def move_thread():
-    global step_set
+    step_set
     stand_stu = 1
     while 1:
-        if not steadyMode:
+        if not self.steadyMode:
             if direction_command == 'forward' and turn_command == 'no':
                 if SmoothMode:
                     move.dove(step_set,35,0.001,DPI,'no')
@@ -175,24 +178,16 @@ def info_send_client():
 
 
 def FPV_thread():
-    global fpv
+    """this is an openCV communication thread
+    """
+    fpv
     fpv=FPV.FPV()
     fpv.capture_thread(addr[0])
 
 
-def run():
+def run(self):
     global direction_command, turn_command, SmoothMode, steadyMode
-    moving_threading=threading.Thread(target=move_thread)    #Define a thread for moving
-    moving_threading.setDaemon(True)                         #'True' means it is a front thread,it would close when the mainloop() closes
-    moving_threading.start()                                 #Thread starts
 
-    info_threading=threading.Thread(target=info_send_client)   #Define a thread for communication
-    info_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
-    info_threading.start()                                     #Thread starts
-
-    #info_threading=threading.Thread(target=FPV_thread)    #Define a thread for FPV and OpenCV
-    #info_threading.setDaemon(True)                        #'True' means it is a front thread,it would close when the mainloop() closes
-    #info_threading.start()                                #Thread starts
 
     ws_R = 0
     ws_G = 0
@@ -202,9 +197,8 @@ def run():
     Y_pitch_MAX = 600
     Y_pitch_MIN = 100
 
-    while True: 
-        data = ''
-        data = str(tcpCliSock.recv(BUFSIZ).decode())
+    while True:
+        data = str(tcpCliSock.recv(self.BUFFER_SIZE).decode())
         if not data:
             continue
         elif 'forward' == data:
@@ -291,7 +285,8 @@ def run():
             SmoothMode = 0
             tcpCliSock.send(('Smooth_off').encode())
 
-
+        switch_control(data)
+    def switch_control(data)
         elif 'Switch_1_on' in data:
             switch.switch(1,1)
             tcpCliSock.send(('Switch_1_on').encode())
@@ -316,7 +311,7 @@ def run():
             switch.switch(3,0)
             tcpCliSock.send(('Switch_3_off').encode())
 
-        elif 'CVFL' in data:#2 start
+        if 'CVFL' in data:#2 start
             if not FPV.FindLineMode:
                 FPV.FindLineMode = 1
                 tcpCliSock.send(('CVFL_on').encode())
@@ -380,62 +375,123 @@ def run():
 def destory():
     move.clean_all()
 
+class RobotController():
+    def __init__(self):
+        self.step_set = 1
+        self.speed_set = 100
+        self.DPI = 17
 
-def startup_wait(ADDR,FPV_thread):
-    
-    try:
-        # if this works it breaks and starts running...
-        # so this is a "starup wait thing"
-        tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcpSerSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-        tcpSerSock.bind(ADDR)
-        tcpSerSock.listen(5)                      #Start server,waiting for client
-        print('waiting for connection...')
-        tcpCliSock, addr = tcpSerSock.accept()
-        print('...connected from :', addr)
-
-        fps_threading=threading.Thread(target=FPV_thread)         #Define a thread for FPV and OpenCV
-        fps_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
-        fps_threading.start()                                     #Thread starts
+        self.new_frame = 0
+        self.direction_command = 'no'
+        self.turn_command = 'no'
         
-    except:
-        pass
+        # this is hardware again.
+        self.i2c = busio.I2C(SCL,SDA)
+        self.pwm = adafruit_pca9685.PCA9685(i2c)
+        self.pwm.set_pwm_freq(50)
+        self.LED = LED.LED()
 
+        self.SmoothMode = 0
+        self.steadyMode = 0
+        
+        
+        self.HOST = ''
+        self.PORT = 10223                              
+        self.BUFFER_SIZE = 1024                             
+        self.ADDR = (HOST, PORT)
+        
+    def init_move_thread(self):
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        # look for daemon
+        moving_thread=threading.Thread(target=move_thread)
+        
+        # 'True' means it is a front thread,
+        # it would close when the mainloop() closes
+        moving_thread.daemon = True                         
+        moving_thread.start()                                 
+        
+    def info_thread(self):
+        """
+        this creates a thread, to create a socket to send ONE MESSAGE?
+        For fucks sake...
+        """
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        # look for daemon
+        info_thread = threading.Thread(target=info_send_client) 
+        
+        # 'True' means it is a front thread,
+        # it would close when the mainloop() closes  
+        info_thread.daemon = True                             
+        info_thread.start()                                     
 
-def receiving_startup(ap_thread):
-    try:
-        s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        s.connect(("1.1.1.1",80))
-        ipaddr_check=s.getsockname()[0]
-        s.close()
-        print(ipaddr_check)
-    except:
-        ap_threading = threading.Thread(target=ap_thread)   #Define a thread for data receiving
-        ap_threading.setDaemon(True)                          #'True' means it is a front thread,it would close when the mainloop() closes
-        ap_threading.start()                                  #Thread starts
+    
+    def initialize_FPV(self):
+        # threading.Thread creates a new thread
+        # target is the executed executable in this case a function that
+        # is then being run by the thread.
+        # in this case it's targeting FPV, which is this robots 
+        # openCV camera thing, which I don't necessarily want from the the start.
+        self.fps_threading = threading.Thread(target=FPV_thread)         #Define a thread for FPV and OpenCV
+        self.fps_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
+        self.fps_threading.start()                                     #Thread starts
+    
+    def startup_wait(self,ADDR,FPV_thread):
+    
+        try:
+            # if this works it breaks and starts running...
+            # so this is a "starup wait thing"
+            # it's creating a TCP socket and waiting for input? or connection?
+            # hmmmmmmm. not sure if bad idea. might be. might be a good idea.
+            self.tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.tcpSerSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            self.tcpSerSock.bind(ADDR)
+            self.tcpSerSock.listen(5)                      #Start server,waiting for client
+            print('waiting for connection...')
+            self.tcpCliSock, self.other_addr = self.tcpSerSock.accept()
+            print('...connected from :', self.other_addr)
+            
+            if False:
+                
+            
+        except:
+            pass
+    
+    def receiving_startup(self,ap_thread):
+        try:
+            s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            s.connect(("1.1.1.1",80))
+            ipaddr_check=s.getsockname()[0]
+            s.close()
+            print(ipaddr_check)
+        except:
+            ap_threading = threading.Thread(target=ap_thread)   #Define a thread for data receiving
+            ap_threading.setDaemon(True)                          #'True' means it is a front thread,it would close when the mainloop() closes
+            ap_threading.start()                                  #Thread starts
 
-        LED.colorWipe(Color(0,16,50))
-        time.sleep(1)
-        LED.colorWipe(Color(0,16,100))
-        time.sleep(1)
-        LED.colorWipe(Color(0,16,150))
-        time.sleep(1)
-        LED.colorWipe(Color(0,16,200))
-        time.sleep(1)
-        LED.colorWipe(Color(0,16,255))
-        time.sleep(1)
-        LED.colorWipe(Color(35,255,35))
-
+            LED.colorWipe(Color(0,16,50))
+            time.sleep(1)
+            LED.colorWipe(Color(0,16,100))
+            time.sleep(1)
+            LED.colorWipe(Color(0,16,150))
+            time.sleep(1)
+            LED.colorWipe(Color(0,16,200))
+            time.sleep(1)
+            LED.colorWipe(Color(0,16,255))
+            time.sleep(1)
+            LED.colorWipe(Color(35,255,35))
 
 def main():
-    switch.switchSetup()
-    switch.set_all_switch_off()
-    move.init_all()
+    # do just Raspi things, if that works i can worry about starting 
+    # up hardware.
+    hardware = False
+    R = RobotController()
+    
+    if hardware:
+        import setup_hardware
+        setup_hardware.main()
+        R.initialize_FPV()
 
-    HOST = ''
-    PORT = 10223                              #Define port serial 
-    BUFSIZ = 1024                             #Define buffer size
-    ADDR = (HOST, PORT)
+
 
     try:
         led_threading=threading.Thread(target=breath_led)         #Define a thread for LED breathing
@@ -446,9 +502,9 @@ def main():
         pass
 
     while  1:
-        receiving_startup(ap_thread)
+        R.receiving_startup(ap_thread)
     
-        if startup_wait(ADDR,FPV_thread):
+        if R.startup_wait(ADDR,FPV_thread):
             break
     try:
         LED.breath_status_set(0)
