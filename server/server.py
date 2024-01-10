@@ -10,7 +10,7 @@ import socket
 import time
 import threading
 import move
-import Adafruit_PCA9685
+import adafruit_pca9685
 from rpi_ws281x import *
 import argparse
 import os
@@ -26,7 +26,7 @@ DPI = 17
 new_frame = 0
 direction_command = 'no'
 turn_command = 'no'
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = adafruit_pca9685.PCA9685()
 pwm.set_pwm_freq(50)
 LED = LED.LED()
 
@@ -373,7 +373,53 @@ def destory():
     move.clean_all()
 
 
-if __name__ == '__main__':
+def startup_wait(ADDR,FPV_thread):
+    
+    try:
+        # if this works it breaks and starts running...
+        # so this is a "starup wait thing"
+        tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcpSerSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        tcpSerSock.bind(ADDR)
+        tcpSerSock.listen(5)                      #Start server,waiting for client
+        print('waiting for connection...')
+        tcpCliSock, addr = tcpSerSock.accept()
+        print('...connected from :', addr)
+
+        fps_threading=threading.Thread(target=FPV_thread)         #Define a thread for FPV and OpenCV
+        fps_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
+        fps_threading.start()                                     #Thread starts
+        
+    except:
+        pass
+
+
+def receiving_startup(ap_thread):
+    try:
+        s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        s.connect(("1.1.1.1",80))
+        ipaddr_check=s.getsockname()[0]
+        s.close()
+        print(ipaddr_check)
+    except:
+        ap_threading = threading.Thread(target=ap_thread)   #Define a thread for data receiving
+        ap_threading.setDaemon(True)                          #'True' means it is a front thread,it would close when the mainloop() closes
+        ap_threading.start()                                  #Thread starts
+
+        LED.colorWipe(Color(0,16,50))
+        time.sleep(1)
+        LED.colorWipe(Color(0,16,100))
+        time.sleep(1)
+        LED.colorWipe(Color(0,16,150))
+        time.sleep(1)
+        LED.colorWipe(Color(0,16,200))
+        time.sleep(1)
+        LED.colorWipe(Color(0,16,255))
+        time.sleep(1)
+        LED.colorWipe(Color(35,255,35))
+
+
+def main():
     switch.switchSetup()
     switch.set_all_switch_off()
     move.init_all()
@@ -392,45 +438,10 @@ if __name__ == '__main__':
         pass
 
     while  1:
-        try:
-            s =socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-            s.connect(("1.1.1.1",80))
-            ipaddr_check=s.getsockname()[0]
-            s.close()
-            print(ipaddr_check)
-        except:
-            ap_threading=threading.Thread(target=ap_thread)   #Define a thread for data receiving
-            ap_threading.setDaemon(True)                          #'True' means it is a front thread,it would close when the mainloop() closes
-            ap_threading.start()                                  #Thread starts
-
-            LED.colorWipe(Color(0,16,50))
-            time.sleep(1)
-            LED.colorWipe(Color(0,16,100))
-            time.sleep(1)
-            LED.colorWipe(Color(0,16,150))
-            time.sleep(1)
-            LED.colorWipe(Color(0,16,200))
-            time.sleep(1)
-            LED.colorWipe(Color(0,16,255))
-            time.sleep(1)
-            LED.colorWipe(Color(35,255,35))
-
-        try:
-            tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            tcpSerSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-            tcpSerSock.bind(ADDR)
-            tcpSerSock.listen(5)                      #Start server,waiting for client
-            print('waiting for connection...')
-            tcpCliSock, addr = tcpSerSock.accept()
-            print('...connected from :', addr)
-
-            fps_threading=threading.Thread(target=FPV_thread)         #Define a thread for FPV and OpenCV
-            fps_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
-            fps_threading.start()                                     #Thread starts
+        receiving_startup(ap_thread)
+    
+        if startup_wait(ADDR,FPV_thread):
             break
-        except:
-            pass
-
     try:
         LED.breath_status_set(0)
         LED.colorWipe(Color(64,128,255))
@@ -446,3 +457,7 @@ if __name__ == '__main__':
     switch.switch(1,0)
     switch.switch(2,0)
     switch.switch(3,0)
+
+if __name__ == '__main__':
+    #main()
+    a=1
