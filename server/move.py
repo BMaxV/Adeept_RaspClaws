@@ -135,6 +135,77 @@ def mpu6050Test():
 		print('X=%f,Y=%f,Z=%f'%(accelerometer_data['x'],accelerometer_data['y'],accelerometer_data['x']))
 		time.sleep(0.3)
 
+
+def move_thread():
+    # so the global keyword gives access to certain values,
+    # between threads
+    
+    # because it's a daemon thread, it will die when the main process
+    # dies.
+    step_set
+    stand_stu = 1
+    while 1:
+        if not self.steadyMode:
+            if direction_command == 'forward' and turn_command == 'no':
+                if SmoothMode:
+                    move.dove(step_set,35,0.001,DPI,'no')
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+                else:
+                    move.move(step_set, 35, 'no')
+                    time.sleep(0.1)
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+            elif direction_command == 'backward' and turn_command == 'no':
+                if SmoothMode:
+                    move.dove(step_set,-35,0.001,DPI,'no')
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+                else:
+                    move.move(step_set, -35, 'no')
+                    time.sleep(0.1)
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+            else:
+                pass
+
+            if turn_command != 'no':
+                if SmoothMode:
+                    move.dove(step_set,35,0.001,DPI,turn_command)
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+                else:
+                    move.move(step_set, 35, turn_command)
+                    time.sleep(0.1)
+                    step_set += 1
+                    if step_set == 5:
+                        step_set = 1
+                    continue
+            else:
+                pass
+
+            if turn_command == 'no' and direction_command == 'stand':
+                move.stand()
+                step_set = 1
+            pass
+        else:
+            move.steady_X()
+            move.steady()
+            #print('steady')
+            #time.sleep(0.2)
+
+
+
 		
 def init_all():
 	pwm.set_pwm(0, 0, pwm0)

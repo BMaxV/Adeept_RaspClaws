@@ -9,24 +9,15 @@
 import socket
 import time
 import threading
-import move
+
 import adafruit_pca9685
 from rpi_ws281x import *
 import argparse
-import os
-import FPV
-import psutil
 
-
-
-
-import LED
 
 # this is taken from one of the adafruit examples, let's assume
 # everything is identical, because it's using the same pca?
 
-from board import SCL, SDA
-import busio
 
 step_set = 1
 speed_set = 100
@@ -44,127 +35,10 @@ LED = LED.LED()
 SmoothMode = 0
 steadyMode = 0
 
-def breath_led():
-    LED.breath(255)
+
 
 def  ap_thread():
     os.system("sudo create_ap wlan0 eth0 AdeeptCar 12345678")
-
-
-def get_cpu_tempfunc():
-    """ Return CPU temperature """
-    result = 0
-    mypath = "/sys/class/thermal/thermal_zone0/temp"
-    with open(mypath, 'r') as mytmpfile:
-        for line in mytmpfile:
-            result = line
-
-    result = float(result)/1000
-    result = round(result, 1)
-    return str(result)
-
-
-def get_gpu_tempfunc():
-    """ Return GPU temperature as a character string"""
-    res = os.popen('/opt/vc/bin/vcgencmd measure_temp').readline()
-    return res.replace("temp=", "")
-
-
-def get_cpu_use():
-    """ Return CPU usage using psutil"""
-    cpu_cent = psutil.cpu_percent()
-    return str(cpu_cent)
-
-
-def get_ram_info():
-    """ Return RAM usage using psutil """
-    ram_cent = psutil.virtual_memory()[2]
-    return str(ram_cent)
-
-
-def get_swap_info():
-    """ Return swap memory  usage using psutil """
-    swap_cent = psutil.swap_memory()[3]
-    return str(swap_cent)
-
-
-def info_get():
-    global cpu_t,cpu_u,gpu_t,ram_info
-    while 1:
-        cpu_t = get_cpu_tempfunc()
-        cpu_u = get_cpu_use()
-        ram_info = get_ram_info()
-        time.sleep(3)
-
-
-def move_thread():
-    # so the global keyword gives access to certain values,
-    # between threads
-    
-    # because it's a daemon thread, it will die when the main process
-    # dies.
-    step_set
-    stand_stu = 1
-    while 1:
-        if not self.steadyMode:
-            if direction_command == 'forward' and turn_command == 'no':
-                if SmoothMode:
-                    move.dove(step_set,35,0.001,DPI,'no')
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-                else:
-                    move.move(step_set, 35, 'no')
-                    time.sleep(0.1)
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-            elif direction_command == 'backward' and turn_command == 'no':
-                if SmoothMode:
-                    move.dove(step_set,-35,0.001,DPI,'no')
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-                else:
-                    move.move(step_set, -35, 'no')
-                    time.sleep(0.1)
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-            else:
-                pass
-
-            if turn_command != 'no':
-                if SmoothMode:
-                    move.dove(step_set,35,0.001,DPI,turn_command)
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-                else:
-                    move.move(step_set, 35, turn_command)
-                    time.sleep(0.1)
-                    step_set += 1
-                    if step_set == 5:
-                        step_set = 1
-                    continue
-            else:
-                pass
-
-            if turn_command == 'no' and direction_command == 'stand':
-                move.stand()
-                step_set = 1
-            pass
-        else:
-            move.steady_X()
-            move.steady()
-            #print('steady')
-            #time.sleep(0.2)
-
 
 def info_send_client():
     SERVER_IP = addr[0]
@@ -179,17 +53,7 @@ def info_send_client():
             time.sleep(1)
         except:
             pass
-
-
-def FPV_thread():
-    """this is an openCV communication thread
-    """
-    fpv
-    fpv = FPV.FPV()
-    fpv.capture_thread(addr[0])
-
-def destory():
-    move.clean_all()
+    
 
 class RobotController():
         
@@ -394,11 +258,22 @@ class RobotController():
         self.turn_command = 'no'
         
         # this is hardware again.
-        
-        i2c = busio.I2C(SCL,SDA)
-        self.pwm = adafruit_pca9685.PCA9685(i2c)
-        self.pwm.set_pwm_freq(50)
-        self.LED = LED.LED()
+        if hardware:
+            import setup_hardware
+            import move
+            import FPV
+            import LED
+            from board import SCL, SDA
+            import busio
+            i2c = busio.I2C(SCL,SDA)
+            self.pwm = adafruit_pca9685.PCA9685(i2c)
+            self.pwm.set_pwm_freq(50)
+            self.LED = LED.LED()
+            setup_hardware.main()
+            self.initialize_FPV()
+            self.init_move_thread(move.move_thread)
+            self.init_LED_thread(LED.LED_thread)
+            self.breath_init()
         
         self.ws_R = 0
         self.ws_G = 0
@@ -412,16 +287,24 @@ class RobotController():
         self.BUFFER_SIZE = 1024                             
         self.ADDR = (HOST, PORT)
         
+        
+    def breath_init(self):
+        try:
+            LED.breath_status_set(0)
+            LED.colorWipe(Color(64,128,255))
+        except:
+            pass
+    
     def init_LED_thread(self):
-        led_threading = threading.Thread(target=breath_led)         #Define a thread for LED breathing
+        led_threading = threading.Thread(target=LED.breath)         #Define a thread for LED breathing
         led_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
         led_threading.start()                                     #Thread starts
         LED.breath_color_set('blue')
         
-    def init_move_thread(self):
+    def init_move_thread(self,target):
         # https://docs.python.org/2/library/threading.html#thread-objects
         # look for daemon
-        self.moving_thread=threading.Thread(target=move_thread)
+        self.moving_thread=threading.Thread(target=target)
         
         # 'True' means it is a front thread,
         # it would close when the mainloop() closes
@@ -474,6 +357,10 @@ class RobotController():
             pass
     
     def receiving_startup(self,ap_thread):
+        """
+        I don't get this. why am I doing this?
+        I already have a TCP socket to the client. so wtf
+        """
         try:
             s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
             s.connect(("1.1.1.1",80))
@@ -500,37 +387,20 @@ class RobotController():
 def main():
     # do just Raspi things, if that works i can worry about starting 
     # up hardware.
-    hardware = False
-    R = RobotController()
     
-    if hardware:
-        import setup_hardware
-        setup_hardware.main()
-        R.initialize_FPV()
-
-
+    R = RobotController(hardware=False)
 
     while  1:
         R.receiving_startup(ap_thread)
-    
         if R.startup_wait(ADDR,FPV_thread):
             break
-    try:
-        LED.breath_status_set(0)
-        LED.colorWipe(Color(64,128,255))
-    except:
-        pass
 
-    # try:
-    run()   
-    # except:
-    LED.colorWipe(Color(0,0,0))
-    destory()
-    move.clean_all()
-    switch.switch(1,0)
-    switch.switch(2,0)
-    switch.switch(3,0)
+    R.run()
+    if False:
+        LED.colorWipe(Color(0,0,0))
+        switch.switch(1,0)
+        switch.switch(2,0)
+        switch.switch(3,0)
 
 if __name__ == '__main__':
-    #main()
-    a=1
+    main()

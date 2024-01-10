@@ -120,6 +120,13 @@ def findLineCtrl(posInput, setCenter):#2
         #   move.move(80, 'backward', 'no', 0.5)
         pass
 
+def FPV_thread(addr):
+    """this is an openCV communication thread
+    """
+    fpv
+    fpv = FPV()
+    fpv.capture_thread(addr[0])
+
 def cvFindLine():#2
     global frame_findline, camera#3
     # camera.exposure_mode = 'off'
