@@ -260,8 +260,7 @@ class RobotController():
 
     def set_inputs_for_moving_thread(self,data):
         if self.moving_thread!=None:
-            
-            elif 'forward' == data:
+            if 'forward' == data:
                 direction_command = 'forward'
             elif 'backward' == data:
                 direction_command = 'backward'
@@ -468,11 +467,10 @@ class RobotController():
             print('waiting for connection...')
             self.tcpCliSock, self.other_addr = self.tcpSerSock.accept()
             print('...connected from :', self.other_addr)
-            
-            if False:
-                
+                           
             
         except:
+            print("waiting for connection...")
             pass
     
     def receiving_startup(self,ap_thread):
