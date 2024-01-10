@@ -10,32 +10,9 @@ import socket
 import time
 import threading
 
-import adafruit_pca9685
+
 from rpi_ws281x import *
 import argparse
-
-
-# this is taken from one of the adafruit examples, let's assume
-# everything is identical, because it's using the same pca?
-
-
-step_set = 1
-speed_set = 100
-DPI = 17
-
-new_frame = 0
-direction_command = 'no'
-turn_command = 'no'
-
-i2c = busio.I2C(SCL,SDA)
-pwm = adafruit_pca9685.PCA9685(i2c)
-pwm.set_pwm_freq(50)
-LED = LED.LED()
-
-SmoothMode = 0
-steadyMode = 0
-
-
 
 def  ap_thread():
     os.system("sudo create_ap wlan0 eth0 AdeeptCar 12345678")
@@ -245,7 +222,7 @@ class RobotController():
                     FPV.FindLineMode = 0
                     tcpCliSock.send(('CVFL_off').encode())
     
-    def __init__(self):
+    def __init__(self,hardware=False):
         self.moving_thread = None
         self.info_thread = None
         
@@ -257,7 +234,7 @@ class RobotController():
         self.direction_command = 'no'
         self.turn_command = 'no'
         
-        # this is hardware again.
+        # Do you have hardware?
         if hardware:
             import setup_hardware
             import move
@@ -265,6 +242,7 @@ class RobotController():
             import LED
             from board import SCL, SDA
             import busio
+            import adafruit_pca9685
             i2c = busio.I2C(SCL,SDA)
             self.pwm = adafruit_pca9685.PCA9685(i2c)
             self.pwm.set_pwm_freq(50)
