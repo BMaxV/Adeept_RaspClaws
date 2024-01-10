@@ -14,7 +14,12 @@ import random
 '''
 change this form 1 to -1 to reverse servos
 '''
-pwm = adafruit_pca9685.PCA9685()
+
+from board import SCL, SDA
+import busio
+i2c = busio.I2C(SCL,SDA)
+
+pwm = adafruit_pca9685.PCA9685(i2c)
 pwm.set_pwm_freq(50)
 
 init_pwm0 = 300

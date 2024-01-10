@@ -18,7 +18,11 @@ scGear = RPIservo.ServoCtrl()
 
 kalman_filter_X =  Kalman_filter.Kalman_filter(0.01,0.1)
 
-pwm = adafruit_pca9685.PCA9685()
+from board import SCL, SDA
+import busio
+i2c = busio.I2C(SCL,SDA)
+
+pwm = adafruit_pca9685.PCA9685(i2c)
 pwm.set_pwm_freq(50)
 
 MPU_connection = 1

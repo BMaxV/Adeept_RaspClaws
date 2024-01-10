@@ -82,6 +82,11 @@ D = 0
 '''
 >>> instantiation <<<
 '''
+
+from board import SCL, SDA
+import busio
+i2c = busio.I2C(SCL,SDA)
+
 X_pid = PID.PID()
 X_pid.SetKp(P)
 X_pid.SetKd(I)

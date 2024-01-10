@@ -17,8 +17,11 @@ pwm1_direction = 1
 pwm2_direction = 1
 pwm3_direction = 1
 
+from board import SCL, SDA
+import busio
+i2c = busio.I2C(SCL,SDA)
 
-pwm = adafruit_pca9685.PCA9685()
+pwm = adafruit_pca9685.PCA9685(ic2)
 pwm.set_pwm_freq(50)
 
 pwm0_init = 300

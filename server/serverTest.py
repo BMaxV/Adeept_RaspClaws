@@ -25,7 +25,12 @@ DPI = 17
 new_frame = 0
 direction_command = 'no'
 turn_command = 'no'
-pwm = adafruit_pca9685.PCA9685()
+
+from board import SCL, SDA
+import busio
+i2c = busio.I2C(SCL,SDA)
+
+pwm = adafruit_pca9685.PCA9685(i2c)
 pwm.set_pwm_freq(50)
 LED = LED.LED()
 
