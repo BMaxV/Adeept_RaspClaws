@@ -19,6 +19,12 @@ import psutil
 import switch
 import LED
 
+# this is taken from one of the adafruit examples, let's assume
+# everything is identical, because it's using the same pca?
+
+from board import SCL, SDA
+import busio
+
 step_set = 1
 speed_set = 100
 DPI = 17
@@ -26,7 +32,9 @@ DPI = 17
 new_frame = 0
 direction_command = 'no'
 turn_command = 'no'
-pwm = adafruit_pca9685.PCA9685()
+
+i2c = busio.I2C(SCL,SDA)
+pwm = adafruit_pca9685.PCA9685(i2c)
 pwm.set_pwm_freq(50)
 LED = LED.LED()
 
