@@ -10,7 +10,7 @@ import socket
 import time
 import threading
 import move
-import Adafruit_PCA9685
+import adafruit_pca9685
 from rpi_ws281x import *
 import argparse
 import os
@@ -25,7 +25,7 @@ DPI = 17
 new_frame = 0
 direction_command = 'no'
 turn_command = 'no'
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = adafruit_pca9685.PCA9685()
 pwm.set_pwm_freq(50)
 LED = LED.LED()
 

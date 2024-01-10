@@ -7,7 +7,7 @@ from __future__ import division
 import time
 import RPi.GPIO as GPIO
 import sys
-import Adafruit_PCA9685
+import adafruit_pca9685
 
 '''
 change this form 1 to 0 to reverse servos
@@ -18,7 +18,7 @@ pwm2_direction = 1
 pwm3_direction = 1
 
 
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = adafruit_pca9685.PCA9685()
 pwm.set_pwm_freq(50)
 
 pwm0_init = 300

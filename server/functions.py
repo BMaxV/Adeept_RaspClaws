@@ -7,7 +7,7 @@ import time
 import RPi.GPIO as GPIO
 import threading
 from mpu6050 import mpu6050
-import Adafruit_PCA9685
+import adafruit_pca9685
 import os
 import json
 import Kalman_filter
@@ -18,7 +18,7 @@ scGear = RPIservo.ServoCtrl()
 
 kalman_filter_X =  Kalman_filter.Kalman_filter(0.01,0.1)
 
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = adafruit_pca9685.PCA9685()
 pwm.set_pwm_freq(50)
 
 MPU_connection = 1
@@ -32,6 +32,7 @@ except:
 curpath = os.path.realpath(__file__)
 thisPath = "/" + os.path.dirname(curpath)
 
+# oh no. please stop. this should be purged.
 def num_import_int(initial):        #Call this function to import data from '.txt' file
 	global r
 	with open(thisPath+"/RPIservo.py") as f:
