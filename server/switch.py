@@ -10,7 +10,7 @@ import RPi.GPIO as GPIO
 import time
 
 def switchSetup():
-    GPIO.setwarnings(False)
+    #GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(5, GPIO.OUT)
     GPIO.setup(6, GPIO.OUT)
@@ -45,11 +45,10 @@ def set_all_switch_off():
     switch(1,0)
     switch(2,0)
     switch(3,0)
-
-if __name__ == '__main__':
-    switchSetup()
+    
+def test_local():
     try:
-        while 1:
+        while True:
             switch(1,1)
             switch(2,1)
             switch(3,1)
@@ -60,4 +59,12 @@ if __name__ == '__main__':
             time.sleep(1)
     except:
         set_all_switch_off()
+
+def some_main():
+    switchSetup()
+    test_local()
+
+if __name__ == '__main__':
+    some_main()
+
     

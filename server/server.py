@@ -47,7 +47,6 @@ steadyMode = 0
 def breath_led():
     LED.breath(255)
 
-
 def  ap_thread():
     os.system("sudo create_ap wlan0 eth0 AdeeptCar 12345678")
 
@@ -99,6 +98,11 @@ def info_get():
 
 
 def move_thread():
+    # so the global keyword gives access to certain values,
+    # between threads
+    
+    # because it's a daemon thread, it will die when the main process
+    # dies.
     step_set
     stand_stu = 1
     while 1:
@@ -181,202 +185,207 @@ def FPV_thread():
     """this is an openCV communication thread
     """
     fpv
-    fpv=FPV.FPV()
+    fpv = FPV.FPV()
     fpv.capture_thread(addr[0])
-
-
-def run(self):
-    global direction_command, turn_command, SmoothMode, steadyMode
-
-
-    ws_R = 0
-    ws_G = 0
-    ws_B = 0
-
-    Y_pitch = 300
-    Y_pitch_MAX = 600
-    Y_pitch_MIN = 100
-
-    while True:
-        data = str(tcpCliSock.recv(self.BUFFER_SIZE).decode())
-        if not data:
-            continue
-        elif 'forward' == data:
-            direction_command = 'forward'
-        elif 'backward' == data:
-            direction_command = 'backward'
-        elif 'DS' in data:
-            direction_command = 'stand'
-
-        elif 'left' == data:
-            turn_command = 'left'
-        elif 'right' == data:
-            turn_command = 'right'
-        elif 'leftside' == data:
-            turn_command = 'left'
-        elif 'rightside'== data:
-            turn_command = 'right'
-        elif 'TS' in data:
-            turn_command = 'no'
-
-        elif 'headup' == data:
-            move.look_up()
-        elif 'headdown' == data:
-            move.look_down()
-        elif 'headhome' == data:
-            move.look_home()
-
-        elif 'headleft' == data:
-            move.look_left()
-        elif 'headright' == data:
-            move.look_right()
-
-        elif 'wsR' in data:
-            try:
-                set_R=data.split()
-                ws_R = int(set_R[1])
-                LED.colorWipe(Color(ws_R,ws_G,ws_B))
-            except:
-                pass
-        elif 'wsG' in data:
-            try:
-                set_G=data.split()
-                ws_G = int(set_G[1])
-                LED.colorWipe(Color(ws_R,ws_G,ws_B))
-            except:
-                pass
-        elif 'wsB' in data:
-            try:
-                set_B=data.split()
-                ws_B = int(set_B[1])
-                LED.colorWipe(Color(ws_R,ws_G,ws_B))
-            except:
-                pass
-
-        elif 'FindColor' in data:
-            LED.breath_status_set(1)
-            fpv.FindColor(1)
-            tcpCliSock.send(('FindColor').encode())
-
-        elif 'WatchDog' in data:
-            LED.breath_status_set(1)
-            fpv.WatchDog(1)
-            tcpCliSock.send(('WatchDog').encode())
-
-        elif 'steady' in data:
-            LED.breath_status_set(1)
-            LED.breath_color_set('blue')
-            steadyMode = 1
-            tcpCliSock.send(('steady').encode())
-
-        elif 'funEnd' in data:
-            LED.breath_status_set(0)
-            fpv.FindColor(0)
-            fpv.WatchDog(0)
-            steadyMode = 0
-            tcpCliSock.send(('FunEnd').encode())
-
-
-        elif 'Smooth_on' in data:
-            SmoothMode = 1
-            tcpCliSock.send(('Smooth_on').encode())
-
-        elif 'Smooth_off' in data:
-            SmoothMode = 0
-            tcpCliSock.send(('Smooth_off').encode())
-
-        switch_control(data)
-    def switch_control(data)
-        elif 'Switch_1_on' in data:
-            switch.switch(1,1)
-            tcpCliSock.send(('Switch_1_on').encode())
-
-        elif 'Switch_1_off' in data:
-            switch.switch(1,0)
-            tcpCliSock.send(('Switch_1_off').encode())
-
-        elif 'Switch_2_on' in data:
-            switch.switch(2,1)
-            tcpCliSock.send(('Switch_2_on').encode())
-
-        elif 'Switch_2_off' in data:
-            switch.switch(2,0)
-            tcpCliSock.send(('Switch_2_off').encode())
-
-        elif 'Switch_3_on' in data:
-            switch.switch(3,1)
-            tcpCliSock.send(('Switch_3_on').encode())
-
-        elif 'Switch_3_off' in data:
-            switch.switch(3,0)
-            tcpCliSock.send(('Switch_3_off').encode())
-
-        if 'CVFL' in data:#2 start
-            if not FPV.FindLineMode:
-                FPV.FindLineMode = 1
-                tcpCliSock.send(('CVFL_on').encode())
-            else:
-                # move.motorStop()
-                # FPV.cvFindLineOff()
-                FPV.FindLineMode = 0
-                tcpCliSock.send(('CVFL_off').encode())
-
-        elif 'Render' in data:
-            if FPV.frameRender:
-                FPV.frameRender = 0
-            else:
-                FPV.frameRender = 1
-
-        elif 'WBswitch' in data:
-            if FPV.lineColorSet == 255:
-                FPV.lineColorSet = 0
-            else:
-                FPV.lineColorSet = 255
-
-        elif 'lip1' in data:
-            try:
-                set_lip1=data.split()
-                lip1_set = int(set_lip1[1])
-                FPV.linePos_1 = lip1_set
-            except:
-                pass
-
-        elif 'lip2' in data:
-            try:
-                set_lip2=data.split()
-                lip2_set = int(set_lip2[1])
-                FPV.linePos_2 = lip2_set
-            except:
-                pass
-
-        elif 'err' in data:#2 end
-            try:
-                set_err=data.split()
-                err_set = int(set_err[1])
-                FPV.findLineError = err_set
-            except:
-                pass
-
-        elif 'setEC' in data:#Z
-            ECset = data.split()
-            try:
-                fpv.setExpCom(int(ECset[1]))
-            except:
-                pass
-
-        elif 'defEC' in data:#Z
-            fpv.defaultExpCom()
-
-        else:
-            pass
-        #print(data)
-
 
 def destory():
     move.clean_all()
 
 class RobotController():
+        
+    def run(self):
+        # these are the variables that would be
+        # access by the move thread, if it exists. so.
+        # if I don't have a move thread, I don't need these.
+        # or not like this.
+        # direction_command, turn_command, SmoothMode, steadyMode
+
+        while True:
+            data = str(self.tcpCliSock.recv(self.BUFFER_SIZE).decode())
+            if not data:
+                continue
+            
+            self.set_inputs_for_moving_thread(data)
+            self.set_inputs_for_LED(data)
+            self.send_client_data(data)
+            self.set_FPV_inputs(data)
+            
+    def set_FPV_inputs(data):
+        if self.FPV_thread!=None:
+            if 'Render' in data:
+                if FPV.frameRender:
+                    FPV.frameRender = 0
+                else:
+                    FPV.frameRender = 1
+
+            elif 'WBswitch' in data:
+                if FPV.lineColorSet == 255:
+                    FPV.lineColorSet = 0
+                else:
+                    FPV.lineColorSet = 255
+
+            elif 'lip1' in data:
+                try:
+                    set_lip1=data.split()
+                    lip1_set = int(set_lip1[1])
+                    FPV.linePos_1 = lip1_set
+                except:
+                    pass
+
+            elif 'lip2' in data:
+                try:
+                    set_lip2=data.split()
+                    lip2_set = int(set_lip2[1])
+                    FPV.linePos_2 = lip2_set
+                except:
+                    pass
+
+            elif 'err' in data:#2 end
+                try:
+                    set_err=data.split()
+                    err_set = int(set_err[1])
+                    FPV.findLineError = err_set
+                except:
+                    pass
+
+            elif 'setEC' in data:#Z
+                ECset = data.split()
+                try:
+                    fpv.setExpCom(int(ECset[1]))
+                except:
+                    pass
+
+            elif 'defEC' in data:#Z
+                fpv.defaultExpCom()
+
+    def set_inputs_for_moving_thread(self,data):
+        if self.moving_thread!=None:
+            
+            elif 'forward' == data:
+                direction_command = 'forward'
+            elif 'backward' == data:
+                direction_command = 'backward'
+            elif 'DS' in data:
+                direction_command = 'stand'
+
+            elif 'left' == data:
+                turn_command = 'left'
+            elif 'right' == data:
+                turn_command = 'right'
+            elif 'leftside' == data:
+                turn_command = 'left'
+            elif 'rightside'== data:
+                turn_command = 'right'
+            elif 'TS' in data:
+                turn_command = 'no'
+
+            elif 'headup' == data:
+                move.look_up()
+            elif 'headdown' == data:
+                move.look_down()
+            elif 'headhome' == data:
+                move.look_home()
+
+            elif 'headleft' == data:
+                move.look_left()
+            elif 'headright' == data:
+                move.look_right()
+    
+    def set_inputs_for_LED(data):
+        if self.LED!=None:
+            if 'wsR' in data:
+                try:
+                    set_R=data.split()
+                    ws_R = int(set_R[1])
+                    LED.colorWipe(Color(ws_R,ws_G,ws_B))
+                except:
+                    pass
+            elif 'wsG' in data:
+                try:
+                    set_G=data.split()
+                    ws_G = int(set_G[1])
+                    LED.colorWipe(Color(ws_R,ws_G,ws_B))
+                except:
+                    pass
+            elif 'wsB' in data:
+                try:
+                    set_B=data.split()
+                    ws_B = int(set_B[1])
+                    LED.colorWipe(Color(ws_R,ws_G,ws_B))
+                except:
+                    pass
+    
+    def send_client_data(self,data):
+        if self.tcpCliSock!=None:
+            if 'FindColor' in data:
+                LED.breath_status_set(1)
+                fpv.FindColor(1)
+                tcpCliSock.send(('FindColor').encode())
+
+            elif 'WatchDog' in data:
+                LED.breath_status_set(1)
+                fpv.WatchDog(1)
+                tcpCliSock.send(('WatchDog').encode())
+
+            elif 'steady' in data:
+                LED.breath_status_set(1)
+                LED.breath_color_set('blue')
+                steadyMode = 1
+                tcpCliSock.send(('steady').encode())
+
+            elif 'funEnd' in data:
+                LED.breath_status_set(0)
+                fpv.FindColor(0)
+                fpv.WatchDog(0)
+                steadyMode = 0
+                tcpCliSock.send(('FunEnd').encode())
+
+            elif 'Smooth_on' in data:
+                SmoothMode = 1
+                tcpCliSock.send(('Smooth_on').encode())
+
+            elif 'Smooth_off' in data:
+                SmoothMode = 0
+                tcpCliSock.send(('Smooth_off').encode())
+
+            elif 'Switch_1_on' in data:
+                switch.switch(1,1)
+                tcpCliSock.send(('Switch_1_on').encode())
+
+            elif 'Switch_1_off' in data:
+                switch.switch(1,0)
+                tcpCliSock.send(('Switch_1_off').encode())
+
+            elif 'Switch_2_on' in data:
+                switch.switch(2,1)
+                tcpCliSock.send(('Switch_2_on').encode())
+
+            elif 'Switch_2_off' in data:
+                switch.switch(2,0)
+                tcpCliSock.send(('Switch_2_off').encode())
+
+            elif 'Switch_3_on' in data:
+                switch.switch(3,1)
+                tcpCliSock.send(('Switch_3_on').encode())
+
+            elif 'Switch_3_off' in data:
+                switch.switch(3,0)
+                tcpCliSock.send(('Switch_3_off').encode())
+
+            if 'CVFL' in data:#2 start
+                if not FPV.FindLineMode:
+                    FPV.FindLineMode = 1
+                    tcpCliSock.send(('CVFL_on').encode())
+                else:
+                    # move.motorStop()
+                    # FPV.cvFindLineOff()
+                    FPV.FindLineMode = 0
+                    tcpCliSock.send(('CVFL_off').encode())
+    
     def __init__(self):
+        self.moving_thread = None
+        self.info_thread = None
+        
         self.step_set = 1
         self.speed_set = 100
         self.DPI = 17
@@ -386,43 +395,53 @@ class RobotController():
         self.turn_command = 'no'
         
         # this is hardware again.
-        self.i2c = busio.I2C(SCL,SDA)
+        
+        i2c = busio.I2C(SCL,SDA)
         self.pwm = adafruit_pca9685.PCA9685(i2c)
         self.pwm.set_pwm_freq(50)
         self.LED = LED.LED()
-
+        
+        self.ws_R = 0
+        self.ws_G = 0
+        self.ws_B = 0
+        
         self.SmoothMode = 0
         self.steadyMode = 0
-        
         
         self.HOST = ''
         self.PORT = 10223                              
         self.BUFFER_SIZE = 1024                             
         self.ADDR = (HOST, PORT)
         
+    def init_LED_thread(self):
+        led_threading = threading.Thread(target=breath_led)         #Define a thread for LED breathing
+        led_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
+        led_threading.start()                                     #Thread starts
+        LED.breath_color_set('blue')
+        
     def init_move_thread(self):
         # https://docs.python.org/2/library/threading.html#thread-objects
         # look for daemon
-        moving_thread=threading.Thread(target=move_thread)
+        self.moving_thread=threading.Thread(target=move_thread)
         
         # 'True' means it is a front thread,
         # it would close when the mainloop() closes
-        moving_thread.daemon = True                         
-        moving_thread.start()                                 
+        self.moving_thread.daemon = True                         
+        self.moving_thread.start()                                 
         
-    def info_thread(self):
+    def init_info_thread(self):
         """
         this creates a thread, to create a socket to send ONE MESSAGE?
         For fucks sake...
         """
         # https://docs.python.org/2/library/threading.html#thread-objects
         # look for daemon
-        info_thread = threading.Thread(target=info_send_client) 
+        self.info_thread = threading.Thread(target=info_send_client) 
         
         # 'True' means it is a front thread,
         # it would close when the mainloop() closes  
-        info_thread.daemon = True                             
-        info_thread.start()                                     
+        self.info_thread.daemon = True                             
+        self.info_thread.start()                                     
 
     
     def initialize_FPV(self):
@@ -492,14 +511,6 @@ def main():
         R.initialize_FPV()
 
 
-
-    try:
-        led_threading=threading.Thread(target=breath_led)         #Define a thread for LED breathing
-        led_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
-        led_threading.start()                                     #Thread starts
-        LED.breath_color_set('blue')
-    except:
-        pass
 
     while  1:
         R.receiving_startup(ap_thread)
