@@ -282,9 +282,10 @@ class ServoCtrl:
 
 def test():
     sc = ServoCtrl()
+    print(sc.servos)
     while True:
-        time = time()
-        while time.time()-time < 30:
+        time = time.time()
+        while time.time()-time < 10:
             target = int(random.random()*90+45)
             sc.servos[0].angle = target
             print("turning to",target)
