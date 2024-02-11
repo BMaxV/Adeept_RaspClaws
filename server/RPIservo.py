@@ -282,11 +282,15 @@ class ServoCtrl:
 
 def test():
     sc = ServoCtrl()
-    while 1:
-        target=int(random.random()*90+45)
-        sc.servos[0].angle=target
-        time.sleep(1)
-        print("turning to",target)
+    while True:
+        time = time()
+        while time.time()-time < 30:
+            target = int(random.random()*90+45)
+            sc.servos[0].angle = target
+            print("turning to",target)
+            while True:
+                time.sleep(0.01)
+            
         # sc.moveAngle(0,(random.random()*100-50))
         # time.sleep(1)
         '''
@@ -314,8 +318,6 @@ def test():
         pwm.set_pwm(0,0,100)
         time.sleep(2)
         '''
-        pass
-    pass
 
 
 if __name__ == '__main__':
