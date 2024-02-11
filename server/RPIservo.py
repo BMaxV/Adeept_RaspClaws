@@ -291,6 +291,8 @@ def test():
             dt = time.time()-mytime
             
             sc.servos[0].angle = target
+            sc.servos[1].angle = target
+            sc.servos[2].angle = target
             print("turning to",target,dt)
             time.sleep(0.03)
             
