@@ -42,7 +42,7 @@ init_pwm13 = 300
 init_pwm14 = 300
 init_pwm15 = 300
 
-class ServoCtrl(threading.Thread):
+class ServoCtrl:
 
 	def __init__(self, *args, **kwargs):
 		self.sc_direction = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1]
@@ -77,19 +77,10 @@ class ServoCtrl(threading.Thread):
 		self.wiggleID = 0
 		self.wiggleDirection = 1
 
-		super(ServoCtrl, self).__init__(*args, **kwargs)
-		self.__flag = threading.Event()
-		self.__flag.clear()
 
 
-	def pause(self):
-		print('......................pause..........................')
-		self.__flag.clear()
 
 
-	def resume(self):
-		print('resume')
-		self.__flag.set()
 
 
 	def moveInit(self):
@@ -100,7 +91,7 @@ class ServoCtrl(threading.Thread):
 			self.nowPos[i] = self.initPos[i]
 			self.bufferPos[i] = float(self.initPos[i])
 			self.goalPos[i] = self.initPos[i]
-		self.pause()
+		
 
 
 	def initConfig(self, ID, initInput, moveTo):
@@ -120,7 +111,7 @@ class ServoCtrl(threading.Thread):
 			self.nowPos[ID[i]] = self.initPos[ID[i]]
 			self.bufferPos[ID[i]] = float(self.initPos[ID[i]])
 			self.goalPos[ID[i]] = self.initPos[ID[i]]
-		self.pause()
+		
 
 
 	def posUpdate(self):
@@ -152,7 +143,7 @@ class ServoCtrl(threading.Thread):
 			time.sleep((self.scTime/self.scSteps - self.scMoveTime))
 
 		self.posUpdate()
-		self.pause()
+		
 		return 0
 
 
@@ -184,7 +175,7 @@ class ServoCtrl(threading.Thread):
 			time.sleep(self.scDelay-self.scMoveTime)
 
 		else:
-			self.pause()
+			
 			return 0
 
 
@@ -240,7 +231,7 @@ class ServoCtrl(threading.Thread):
 
 
 	def stopWiggle(self):
-		self.pause()
+		
 		self.posUpdate()
 
 
@@ -278,7 +269,7 @@ class ServoCtrl(threading.Thread):
 		self.bufferPos[ID] = float(PWM_input)
 		self.goalPos[ID] = PWM_input
 		pwm.set_pwm(ID, 0, PWM_input)
-		self.pause()
+		
 
 
 	def run(self):
@@ -287,10 +278,8 @@ class ServoCtrl(threading.Thread):
 			self.scMove()
 			pass
 
-
-if __name__ == '__main__':
+def test():
 	sc = ServoCtrl()
-	sc.start()
 	while 1:
 		sc.moveAngle(0,(random.random()*100-50))
 		time.sleep(1)
@@ -323,3 +312,8 @@ if __name__ == '__main__':
 		'''
 		pass
 	pass
+
+
+if __name__ == '__main__':
+    test()
+
