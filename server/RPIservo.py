@@ -286,9 +286,10 @@ def test():
     while True:
         mytime = time.time()
         dt=0
+        target = int(random.random()*90+45)
         while dt < 10:
             dt = time.time()-mytime
-            target = int(random.random()*90+45)
+            
             sc.servos[0].angle = target
             print("turning to",target,dt)
             time.sleep(0.03)
