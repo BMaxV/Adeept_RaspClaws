@@ -285,12 +285,13 @@ def test():
     print(sc.servos)
     while True:
         mytime = time.time()
-        while time.time()-mytime < 10:
+        dt=0
+        while dt < 10:
+            dt = time.time()-mytime
             target = int(random.random()*90+45)
             sc.servos[0].angle = target
-            print("turning to",target)
-            while True:
-                time.sleep(0.01)
+            print("turning to",target,dt)
+            time.sleep(0.03)
             
         # sc.moveAngle(0,(random.random()*100-50))
         # time.sleep(1)
