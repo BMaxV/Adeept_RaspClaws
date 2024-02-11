@@ -3,24 +3,20 @@
 # Description : Control Servos
 # Author	  : William
 # Date		: 2019/02/23
-from __future__ import division
+
 import time
 import RPi.GPIO as GPIO
 import sys
 import adafruit_pca9685
-import threading
 
 import random
-'''
-change this form 1 to -1 to reverse servos
-'''
-
 from board import SCL, SDA
 import busio
+
 i2c = busio.I2C(SCL,SDA)
 
 pwm = adafruit_pca9685.PCA9685(i2c)
-pwm.set_pwm_freq(50)
+pwm.frequency = 50
 
 init_pwm0 = 300
 init_pwm1 = 300
@@ -77,12 +73,6 @@ class ServoCtrl:
 		self.wiggleID = 0
 		self.wiggleDirection = 1
 
-
-
-
-
-
-
 	def moveInit(self):
 		self.scMode = 'init'
 		for i in range(0,16):
@@ -91,8 +81,6 @@ class ServoCtrl:
 			self.nowPos[i] = self.initPos[i]
 			self.bufferPos[i] = float(self.initPos[i])
 			self.goalPos[i] = self.initPos[i]
-		
-
 
 	def initConfig(self, ID, initInput, moveTo):
 		if initInput > self.minPos[ID] and initInput < self.maxPos[ID]:
@@ -283,8 +271,8 @@ def test():
 	while 1:
 		sc.moveAngle(0,(random.random()*100-50))
 		time.sleep(1)
-		sc.moveAngle(1,(random.random()*100-50))
-		time.sleep(1)
+		# sc.moveAngle(0,(random.random()*100-50))
+		# time.sleep(1)
 		'''
 		sc.singleServo(0, 1, 5)
 		time.sleep(6)
