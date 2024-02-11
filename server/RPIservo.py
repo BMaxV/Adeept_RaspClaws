@@ -8,39 +8,48 @@ import time
 import RPi.GPIO as GPIO
 import sys
 import adafruit_pca9685
-
+from adafruit_motor import servo
 import random
 from board import SCL, SDA
 import busio
 
-i2c = busio.I2C(SCL,SDA)
 
-pwm = adafruit_pca9685.PCA9685(i2c)
-pwm.frequency = 50
-
-init_pwm0 = 300
-init_pwm1 = 300
-init_pwm2 = 300
-init_pwm3 = 300
-
-init_pwm4 = 300
-init_pwm5 = 300
-init_pwm6 = 300
-init_pwm7 = 300
-
-init_pwm8 = 300
-init_pwm9 = 300
-init_pwm10 = 300
-init_pwm11 = 300
-
-init_pwm12 = 300
-init_pwm13 = 300
-init_pwm14 = 300
-init_pwm15 = 300
 
 class ServoCtrl:
 
 	def __init__(self, *args, **kwargs):
+        
+        i2c = busio.I2C(SCL,SDA)
+
+        self.board = adafruit_pca9685.PCA9685(i2c)
+        self.frequency = 50
+        
+        self.servos = {}
+        c=0
+        for channel in self.board.channels:
+            self.servos[c]=servo.Servo(channel)
+            c+=1
+            
+        init_pwm0 = 300
+        init_pwm1 = 300
+        init_pwm2 = 300
+        init_pwm3 = 300
+
+        init_pwm4 = 300
+        init_pwm5 = 300
+        init_pwm6 = 300
+        init_pwm7 = 300
+
+        init_pwm8 = 300
+        init_pwm9 = 300
+        init_pwm10 = 300
+        init_pwm11 = 300
+
+        init_pwm12 = 300
+        init_pwm13 = 300
+        init_pwm14 = 300
+        init_pwm15 = 300
+        
 		self.sc_direction = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1]
 		self.initPos = [init_pwm0,init_pwm1,init_pwm2,init_pwm3,
 						init_pwm4,init_pwm5,init_pwm6,init_pwm7,
@@ -72,7 +81,12 @@ class ServoCtrl:
 		self.goalUpdate = 0
 		self.wiggleID = 0
 		self.wiggleDirection = 1
-
+    
+    def set_pwm(self,index,angle):
+        # this is from this example.
+        # https://github.com/adafruit/Adafruit_CircuitPython_PCA9685/blob/f2dd7195f020e397e3242d8d07230952d60b6e42/examples/pca9685_servo.py
+        self.servos[index].angle=angle
+    
 	def moveInit(self):
 		self.scMode = 'init'
 		for i in range(0,16):
@@ -269,7 +283,7 @@ class ServoCtrl:
 def test():
 	sc = ServoCtrl()
 	while 1:
-		sc.moveAngle(0,(random.random()*100-50))
+        sc.servos[0].angle=int(random.random()*90+45)
 		time.sleep(1)
 		# sc.moveAngle(0,(random.random()*100-50))
 		# time.sleep(1)
